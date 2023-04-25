@@ -3,6 +3,12 @@ from pygame import *
 from random import randint
 from pygame import Vector2
 
+
+
+
+
+
+
 # CONSTANTS
 
 # dimensions of the screen
@@ -15,11 +21,9 @@ WINDOW = pygame.display.set_mode((WIDTH, HEIGHT))
 FPS = 60
 clock = pygame.time.Clock()
 UPDATE_TIMER = pygame.USEREVENT 
-pygame.time.set_timer(UPDATE_TIMER,130)
+pygame.time.set_timer(UPDATE_TIMER,110)
 # Setting the Name of the Game
 pygame.display.set_caption("Slinky Billy")
-
-
 
 
 # FOOD SECTION
@@ -36,6 +40,8 @@ class Food():
         self.coor = Vector2(self.x, self.y)
 
     def display(self, ):
+        # Test 
+        # print("Food created and displayed")
         food_rect = Rect(int(self.coor.x) * 60, int(self.coor.y) *60, CELL_SIZE, CELL_SIZE)
         pygame.draw.rect(WINDOW, (200, 0, 0), food_rect)
 
@@ -101,51 +107,73 @@ class Snake():
             self.direction = 'right'
         else:
             pass
+        return self.direction
     
     def move(self,):
         ''' This method moves the snake continously until the game stops'''
         current = snake_body.head
-        while current.next:
+        while current.next:                     # This loops through the linked list inorder to get
             current = current.next
         while current.previous:
             current.x, current.y = current.previous.x, current.previous.y
             current = current.previous
         if self.direction == 'up':
             snake_body.head.y -= 30
+            # print("going up")
         elif self.direction == 'down':
             snake_body.head.y += 30
+            # print("going down")
         elif self.direction == 'left':
             snake_body.head.x -= 30
+            # print("going left")
         elif self.direction == 'right':
             snake_body.head.x += 30
+            # print("going right")
         else:
             pass
+        return "Moving"
 
     def grow(self,):
+        ''' This is the method that adds the functionality for the snake to increase in size when it eats the fruit.
+         It loops through the Doubly linked List until it finds the tail ( The block with no next attribute ) 
+         Then it sets that block's next attribute to the new block that was created and adds it into the link. '''
         current = snake_body.head
         while current.next:
             current = current.next
         if self.direction == 'right':
-            new_body = Node(current.x-30, current.y)
+            new_body = Node(current.x-30, current.y) #This creates the new block and sets the position of the block based on the tail's block and the direction of the snake
             new_body.previous = current
         elif self.direction == 'left':
-            new_body = Node(current.x + 30, current.y)
+            new_body = Node(current.x + 30, current.y) #This creates the new block and sets the position of the block based on the tail's block and the direction of the snake
             new_body.previous = current
         elif self.direction == 'down':
-            new_body = Node(current.x, current.y-30)
+            new_body = Node(current.x, current.y-30) #This creates the new block and sets the position of the block based on the tail's block and the direction of the snake
             new_body.previous = current
         elif self.direction == 'up':
-            new_body = Node(current.x, current.y+30)
+            new_body = Node(current.x, current.y+30) #This creates the new block and sets the position of the block based on the tail's block and the direction of the snake
             new_body.previous = current
         current.next = new_body
+        # Test
+        #print("Added New Body")   
+        return "New body block created"
+           
 
         
     def munch(self,):
+        ''' This method holds the functionality for the snake's eating abilities.
+         It checks constantly if the position of the snake's head and the food are the same then it calls the grow method of the snake'''
         global food
         if snake_body.head.x == food.x *60 and snake_body.head.y == food.y *60:
-            food = Food()
-            self.grow()
+            food = Food()       #Calls the creates a new food object from the food class
+            self.grow()         #Calls the grow method of the snake
+            # print("Eating")
         
+
+    def collision(self,):
+        if snake_body.head.x >= 600 or snake_body.head.x <= 0:
+            pass
+        
+
         
             
     
@@ -157,9 +185,9 @@ class Snake():
 food = Food()
 snake = Snake()
 
-
+game_is_running = True
 def main():
-    game_is_running = True
+    global game_is_running
     while game_is_running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -196,11 +224,13 @@ def main():
                     else:
                         snake.change_direction('right')
         snake.munch()
+        snake.collision()
         pygame.display.update()
         clock.tick(FPS)
 
 
     pygame.quit()
+    sys.exit()
 
 
 
