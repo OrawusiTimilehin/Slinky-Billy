@@ -15,7 +15,7 @@ WINDOW = pygame.display.set_mode((WIDTH, HEIGHT))
 FPS = 60
 clock = pygame.time.Clock()
 UPDATE_TIMER = pygame.USEREVENT 
-pygame.time.set_timer(UPDATE_TIMER,150)
+pygame.time.set_timer(UPDATE_TIMER,130)
 # Setting the Name of the Game
 pygame.display.set_caption("Slinky Billy")
 
@@ -36,7 +36,7 @@ class Food():
         self.coor = Vector2(self.x, self.y)
 
     def display(self, ):
-        food_rect = Rect(int(self.coor.x) * 100, int(self.coor.y) *60, CELL_SIZE, CELL_SIZE)
+        food_rect = Rect(int(self.coor.x) * 60, int(self.coor.y) *60, CELL_SIZE, CELL_SIZE)
         pygame.draw.rect(WINDOW, (200, 0, 0), food_rect)
 
 
@@ -47,8 +47,9 @@ class Node():
         self.x = x
         self.y = y
         self.next = None
+        self.previous = None
 
-class LinkedList():
+class DoublyLinkedList():
     def __init__(self, ):
         self.head = None
 
@@ -64,12 +65,14 @@ class LinkedList():
 
 
 # Initialising snake body for the start of the game
-snake_body = LinkedList()
-snake_body.head = Node(500, 260)
-# snake_middle = Node(460, 260)
-# snake_body.head.next = snake_middle
-# snake_tail = Node(420,260)
-# snake_middle.next = snake_tail
+snake_body = DoublyLinkedList()
+snake_body.head = Node(300, 300)
+snake_middle = Node(270, 300)
+snake_tail = Node(240,300)
+snake_body.head.next = snake_middle
+snake_middle.next = snake_tail
+snake_middle.previous = snake_body.head
+snake_tail.previous = snake_middle
 
 
 
@@ -101,19 +104,51 @@ class Snake():
     
     def move(self,):
         ''' This method moves the snake continously until the game stops'''
+        current = snake_body.head
+        while current.next:
+            current = current.next
+        while current.previous:
+            current.x, current.y = current.previous.x, current.previous.y
+            current = current.previous
         if self.direction == 'up':
-            snake_body.head.y -= 40
+            snake_body.head.y -= 30
         elif self.direction == 'down':
-            snake_body.head.y += 40
+            snake_body.head.y += 30
         elif self.direction == 'left':
-            snake_body.head.x -= 40
+            snake_body.head.x -= 30
         elif self.direction == 'right':
-            snake_body.head.x += 40
+            snake_body.head.x += 30
         else:
             pass
 
+    def grow(self,):
+        current = snake_body.head
+        while current.next:
+            current = current.next
+        if self.direction == 'right':
+            new_body = Node(current.x-30, current.y)
+            new_body.previous = current
+        elif self.direction == 'left':
+            new_body = Node(current.x + 30, current.y)
+            new_body.previous = current
+        elif self.direction == 'down':
+            new_body = Node(current.x, current.y-30)
+            new_body.previous = current
+        elif self.direction == 'up':
+            new_body = Node(current.x, current.y+30)
+            new_body.previous = current
+        current.next = new_body
+
+        
+    def munch(self,):
+        global food
+        if snake_body.head.x == food.x *60 and snake_body.head.y == food.y *60:
+            food = Food()
+            self.grow()
+        
         
             
+    
 
 
 
@@ -160,7 +195,7 @@ def main():
                         pass
                     else:
                         snake.change_direction('right')
-        
+        snake.munch()
         pygame.display.update()
         clock.tick(FPS)
 
